@@ -1,21 +1,30 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+
+import { Provider } from 'react-redux';
+// import store from './redux/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import {store, persistor} from './redux/store';
+
+import Main from './pages/main';
+import Splash from './components/Splash';
 
 export default function App() {
+
+  const [splash, setSplash] = useState(true);
+
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setSplash(false);
+  //   }, 1500);
+  // }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Provider store={store}>
+      <PersistGate loading={<Splash/>} persistor={persistor} onBeforeLift={() => setTimeout(() => {
+        setSplash(false);
+      }, 1500)}>
+        <Main splash={splash}/>
+      </PersistGate>
+    </Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
