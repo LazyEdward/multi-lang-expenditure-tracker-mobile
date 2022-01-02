@@ -10,6 +10,8 @@ import {
 	getColor
 } from '../redux/reducer/setting'
 
+import { isPriceOnEntering } from '../utils/Validation'
+
 const Day = ({ navigation }) => {
 
 	const dispatch = useDispatch();
@@ -19,44 +21,64 @@ const Day = ({ navigation }) => {
 		baseColor: getColor(state.setting)
 	}))
 
+	const [total, setTotal] = useState(0)
 	const [items, setItems] = useState([]);
 
-	const setItemAt = (index, text) => {
+	const setItemName = (index, text) => {
 		let newItems = [...items];
 
-		newItems[index] = text;
+		newItems[index].name = text;
+		console.log(newItems)
+		setItems(newItems);
+	}
+
+	const setItemPrice = (index, price) => {
+		let newItems = [...items];
+
+		if(!isPriceOnEntering(price)){
+			alert('Please enter a valid price');
+			return;
+		}
+
+		newItems[index].price = price;
 		setItems(newItems);
 	}
 
 	const removeItemAt = (index) => setItems([...items.slice(0, index), ...items.slice(index + 1)]);
 
 	const addItem = () => {
-		setItems([...items, '']);
+		let totalItems = items.length;
+
+		setItems([...items, {
+			name: `Item ${totalItems + 1}`,
+			price: ''
+		}]);
 	}
+
+	useEffect(() => {
+		setTotal(items.filter(item => !isNaN(parseFloat(item.price))).map(item => parseFloat(item.price) * 1000).reduce((a, b) => {return a + b} , 0.0) / 1000);
+	}, [items])
 
 	return (
 		<SafeAreaView style={styles.container}>
+			<View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 15, paddingRight: 15, paddingBottom: 15, width: '100%'}}>
+				<Text>Total: </Text>
+				<Text>{`$ ${total}`}</Text>
+			</View>
 			<ScrollView style={styles.scroll} keyboardShouldPersistTaps='always'>
-				{/* <View style={{alignItems: 'center'}}>
-					<TextInput
-						style={styles.textInput}
-						onFocus={(e) => alert(e.style)}
-						onChangeText={text => setTestText(text)}
-						value={testText}
-					/>
-				</View> */}
 				{items.map((item, index) => (
 					<DayListItem
 						key={index}
-						value={item}
+						item={item}
 						borderColor={baseColor}
-						setValue={(text) => setItemAt(index, text)}
+						setItemName={(text) => setItemName(index, text)}
+						setItemPrice={(price) => setItemPrice(index, price)}
 						onRemove={() => removeItemAt(index)}
 					/>
 				))}
 			</ScrollView>
 			<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
-				<Text style={{color: '#fff'}}>Test</Text>
+				<Text style={{color: '#fff'}}>Add Item</Text>
 			</TouchableHighlight>
 		</SafeAreaView>
 	)

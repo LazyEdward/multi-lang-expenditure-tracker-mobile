@@ -5,36 +5,67 @@ import { StyleSheet, TextInput, View, TouchableOpacity } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
-const DayListItem = ({value, setValue, onRemove, focus, onFocus, onBlur, borderColor}) => {
+const DayListItem = ({item, setItemName, setItemPrice, onRemove, focus, onFocus, onBlur, borderColor}) => {
 
-	const [isFocus, setIsFocus] = useState(false);
+	const [isFocusName, setIsFocusName] = useState(false);
+	const [isFocusPrice, setIsFocusPrice] = useState(false);
 	
-	useEffect(() => {
-		if(isFocus === focus)
-			return;
-		setIsFocus(focus)
-	}, [focus])
+	// useEffect(() => {
+	// 	if(isFocus === focus)
+	// 		return;
+	// 	setIsFocus(focus)
+	// }, [focus])
 
 	return (
-		<View style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-			<TextInput
-				style={isFocus ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}
-				onFocus={(e) => {
-					setIsFocus(true);
-					if(onFocus)
-						onFocus();
-				}}
-				onBlur={(e) => {
-					setIsFocus(false);
-					if(onBlur)
-						onBlur();
-				}}
-				onChangeText={text => {
-					setValue(text)
-				}}
-				autoFocus
-				value={value}
-			/>
+		<View style={{display: 'flex',
+					flexDirection: 'row',
+					alignItems: 'center',
+					justifyContent: 'center',
+					paddingLeft: 5,
+					paddingRight: 5,
+					paddingBottom: 15,
+					borderRadius: 25}}>
+			{/* <View style={{display: 'flex', width: '80%'}}> */}
+			<View style={{display: 'flex', flexDirection: 'row', width: '80%'}}>
+				<TextInput
+					placeholder='Item Name'
+					style={isFocusName ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}
+					onFocus={(e) => {
+						setIsFocusName(true);
+						if(onFocus)
+							onFocus();
+					}}
+					onBlur={(e) => {
+						setIsFocusName(false);
+						if(onBlur)
+							onBlur();
+					}}
+					onChangeText={text => {
+						setItemName(text)
+					}}
+					autoFocus
+					value={item.name}
+				/>
+				<TextInput
+					placeholder='Item Price'
+					style={isFocusPrice ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}
+					onFocus={(e) => {
+						setIsFocusPrice(true);
+						if(onFocus)
+							onFocus();
+					}}
+					onBlur={(e) => {
+						setIsFocusPrice(false);
+						if(onBlur)
+							onBlur();
+					}}
+					onChangeText={text => {
+						setItemPrice(text)
+					}}
+					autoFocus
+					value={item.price}
+				/>
+			</View>
 			<TouchableOpacity style={styles.button} onPress={onRemove}>
 				<Ionicons style={styles.iconButton} name="remove-circle" size={25} color={'#e83c3c'} />
 			</TouchableOpacity>			
@@ -43,8 +74,9 @@ const DayListItem = ({value, setValue, onRemove, focus, onFocus, onBlur, borderC
 }
 
 DayListItem.propTypes = {
-	value: PropTypes.string,
-	setValue: PropTypes.func,
+	item: PropTypes.object,
+	setItemName: PropTypes.func,
+	setItemPrice: PropTypes.func,
 	onRemove: PropTypes.func,
 	focus: PropTypes.bool,
 	onFocus: PropTypes.func,
@@ -53,8 +85,12 @@ DayListItem.propTypes = {
 }
 
 DayListItem.defaultProps = {
-	value: '',
-	setValue: null,
+	item: {
+		name: '',
+		price: ''
+	},
+	setItemName: () => {},
+	setItemPrice: () => {},
 	onRemove: null,
 	focus: false,
 	onFocus: null,
@@ -64,7 +100,8 @@ DayListItem.defaultProps = {
 
 const styles = StyleSheet.create({
 	textInput: {
-		width: '80%',
+		// width: '80%',
+		flex: 1,
 		height: 40,
 		borderColor: '#989898',
 		borderWidth: 2,
