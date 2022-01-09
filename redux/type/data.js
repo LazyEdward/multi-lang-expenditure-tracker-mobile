@@ -1,0 +1,2 @@
+export const SET_DAY_ITEM = 'SET_DAY_ITEM'
+export const SET_DAY_ITEM_DONE = 'SET_DAY_ITEM_DONE'

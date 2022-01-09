@@ -5,7 +5,7 @@ import { StyleSheet, TextInput, View, TouchableOpacity } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
-const DayListItem = ({item, setItemName, setItemPrice, onRemove, focus, onFocus, onBlur, borderColor}) => {
+const DayListItem = ({item, setItemName, setItemPrice, onRemove, autoFocus, onFocus, onBlur, borderColor}) => {
 
 	const [isFocusName, setIsFocusName] = useState(false);
 	const [isFocusPrice, setIsFocusPrice] = useState(false);
@@ -43,7 +43,7 @@ const DayListItem = ({item, setItemName, setItemPrice, onRemove, focus, onFocus,
 					onChangeText={text => {
 						setItemName(text)
 					}}
-					autoFocus
+					// autoFocus
 					value={item.name}
 				/>
 				<TextInput
@@ -62,7 +62,7 @@ const DayListItem = ({item, setItemName, setItemPrice, onRemove, focus, onFocus,
 					onChangeText={text => {
 						setItemPrice(text)
 					}}
-					autoFocus
+					autoFocus={autoFocus}
 					value={item.price}
 				/>
 			</View>

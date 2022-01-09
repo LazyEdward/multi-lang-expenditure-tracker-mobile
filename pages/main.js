@@ -127,7 +127,7 @@ const Main = ({ navigation, splash }) => {
 			if(tab === targetTab)
 				return;
 
-			dispatch(setTab({tab: targetTab}))
+			setTimeout(() => dispatch(setTab({tab: targetTab})), 100)
 		},
 	})
 
@@ -186,7 +186,7 @@ const Main = ({ navigation, splash }) => {
 			}
 		}
 
-		dispatch(setDate(date))
+		setTimeout(() => dispatch(setDate(date)), 100)		
 	}
 
 	const handleNext = (page) => {
@@ -229,8 +229,8 @@ const Main = ({ navigation, splash }) => {
 				}
 			}
 		}
-
-		dispatch(setDate(date))
+		
+		setTimeout(() => dispatch(setDate(date)), 100)
 	}
 
 	return (

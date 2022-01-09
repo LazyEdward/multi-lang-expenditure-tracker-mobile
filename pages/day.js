@@ -1,28 +1,60 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
+import { Button, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
 
 import { useDispatch, useSelector } from 'react-redux';
 
-import DayListItem from '../components/DayListItem';
+import {
+	getTab,
+	getDay,
+	getMonth,
+	getYear,
+} from '../redux/reducer/tab'
 
 import {
 	getColor
 } from '../redux/reducer/setting'
 
+import {
+	getData,
+	getDataLoading
+} from '../redux/reducer/data'
+
+import {
+	setDayItems
+} from '../redux/action/data'
+
+import Loading from '../components/Loading'
+import DayListItem from '../components/DayListItem';
 import { isPriceOnEntering } from '../utils/Validation'
 
 const Day = ({ navigation }) => {
 
 	const dispatch = useDispatch();
 	const {
-		baseColor
+		baseColor,
+		allItems,
+		allItemsLoading,
+
+		tab,
+		day,
+		month,
+		year
 	} = useSelector(state => ({
-		baseColor: getColor(state.setting)
+		baseColor: getColor(state.setting),
+		allItems: getData(state.data),
+		allItemsLoading: getDataLoading(state.data),
+
+		tab: getTab(state.tab),
+		day: getDay(state.tab),
+		month: getMonth(state.tab),
+		year: getYear(state.tab),
 	}))
 
 	const [total, setTotal] = useState(0)
 	const [items, setItems] = useState([]);
+	
+	const [autoFocus, setAutoFocus] = useState(false);
 
 	const setItemName = (index, text) => {
 		let newItems = [...items];
@@ -53,7 +85,28 @@ const Day = ({ navigation }) => {
 			name: `Item ${totalItems + 1}`,
 			price: ''
 		}]);
+
+		setAutoFocus(true)
 	}
+
+	const saveEdit = () => {
+		dispatch(setDayItems({items, day, month, year}));
+		Keyboard.dismiss();
+	}
+
+	useEffect(() => {
+		console.log(allItems)
+		if(allItems[year] && allItems[year][month] && allItems[year][month][day]){
+			if(allItems[year][month][day].items.length > 0)
+				setItems([...allItems[year][month][day].items])
+			else
+				setItems([])
+		}
+		else
+			setItems([])
+
+		setAutoFocus(false)
+	}, [allItems, year, month, day, tab])
 
 	useEffect(() => {
 		setTotal(items.filter(item => !isNaN(parseFloat(item.price))).map(item => parseFloat(item.price) * 1000).reduce((a, b) => {return a + b} , 0.0) / 1000);
@@ -61,6 +114,7 @@ const Day = ({ navigation }) => {
 
 	return (
 		<SafeAreaView style={styles.container}>
+			{allItemsLoading ? <Loading/> : null}			
 			<View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 15, paddingRight: 15, paddingBottom: 15, width: '100%'}}>
 				<Text>Total: </Text>
 				<Text>{`$ ${total}`}</Text>
@@ -70,6 +124,7 @@ const Day = ({ navigation }) => {
 					<DayListItem
 						key={index}
 						item={item}
+						autoFocus={autoFocus}
 						borderColor={baseColor}
 						setItemName={(text) => setItemName(index, text)}
 						setItemPrice={(price) => setItemPrice(index, price)}
@@ -77,9 +132,14 @@ const Day = ({ navigation }) => {
 					/>
 				))}
 			</ScrollView>
-			<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
-				<Text style={{color: '#fff'}}>Add Item</Text>
-			</TouchableHighlight>
+			<View style={{width: '90%', display: 'flex', alignItems: 'center', flexDirection: 'row'}}>
+				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
+					<Text style={{color: '#fff'}}>Add Item</Text>
+				</TouchableHighlight>
+				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={saveEdit}>
+					<Text style={{color: '#fff'}}>Save</Text>
+				</TouchableHighlight>				
+			</View>
 		</SafeAreaView>
 	)
 }
@@ -109,7 +169,8 @@ const styles = StyleSheet.create({
 	// 	padding: 5
 	// },
 	button: {
-		width: '90%',
+		// width: '90%',
+		flex: 1,
 		height: 40,
 		margin: 5,
 		padding: 5,
