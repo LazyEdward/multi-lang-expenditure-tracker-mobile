@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import {
 	getColor,
+	getLanguage,
 	getDefaultView
 } from '../redux/reducer/setting'
 
@@ -39,9 +40,11 @@ import DateUtils from '../utils/DateUtils'
 import Splash from '../components/Splash';
 import { getLoading } from '../redux/reducer/loading';
 
+import { useTranslation } from 'react-i18next';
+
 const Tabs = createBottomTabNavigator();
 
-const TabBarIcons = {
+const TAB_BAR_ICONS = {
   Day: {
     focused: "settings",
     blur: "settings-outline"
@@ -60,11 +63,18 @@ const TabBarIcons = {
   },
 }
 
+const TAB_BUTTON_LABEL = {
+	Setting: "SETTING_TITLE",
+	Day: "DAY_TITLE",
+	Month: "MONTH_TITLE",
+	Year: "YEAR_TITLE",
+}
+
 const getIconName = (route, focused) => {
   let iconName = '';
 
-  if(TabBarIcons[route.name]){
-    iconName = focused ? TabBarIcons[route.name].focused : TabBarIcons[route.name].blur
+  if(TAB_BAR_ICONS[route.name]){
+    iconName = focused ? TAB_BAR_ICONS[route.name].focused : TAB_BAR_ICONS[route.name].blur
   }
 
   return iconName;
@@ -87,11 +97,13 @@ const getBarIcon = (route, focused, color, size) => {
 
 const Main = ({ navigation, splash }) => {
   
+	const { t, i18n } = useTranslation();
 	const dispatch = useDispatch();
 
 	const {
 	  loading,
 	  baseColor,
+	  language,
 	  defaultTab,
 
 	  tab,
@@ -100,6 +112,7 @@ const Main = ({ navigation, splash }) => {
 	  year
 	} = useSelector(state => ({
 	  baseColor: getColor(state.setting),
+	  language: getLanguage(state.setting),
 	  defaultTab: getDefaultView(state.setting),
 	  
 	  tab: getTab(state.tab),
@@ -118,6 +131,14 @@ const Main = ({ navigation, splash }) => {
 		console.log(tab)
 	}, [tab])
 	
+	useEffect(() => {
+		i18n.changeLanguage(language)
+	}, [])
+	
+	useEffect(() => {
+		i18n.changeLanguage(language)
+	}, [language])
+
 	// const [day, setDay] = useState(DateUtils.today.getDate());
 	// const [month, setMonth] = useState(DateUtils.today.getMonth() + 1);
 	// const [year, setYear] = useState(DateUtils.today.getFullYear());	
@@ -131,9 +152,13 @@ const Main = ({ navigation, splash }) => {
 		},
 	})
 
+	const getTabButtonLabel = (page) => {
+		return t(`TAB:${TAB_BUTTON_LABEL[page]}`)
+	}
+
 	const getTabLabel = (page) => {
 		if(page === 'Setting')
-			return 'Setting';
+			return t('TAB:SETTING_TITLE');
 
 		let label = `${year}`;
 
@@ -239,7 +264,8 @@ const Main = ({ navigation, splash }) => {
             <Splash/>
           :
             <NavigationContainer style={styles.container}>
-              <Tabs.Navigator			  
+              <Tabs.Navigator
+			  	  backBehavior="none"
                   screenOptions={({route}) => ({
                   // headerShown: false,
                   headerTintColor: '#fff',
@@ -254,21 +280,22 @@ const Main = ({ navigation, splash }) => {
                   },
                   headerTitle: getTabLabel(route.name),
                   headerTitleAlign: 'center',
+				  tabBarLabel: getTabButtonLabel(route.name),
                   tabBarIcon: ({ focused, color, size }) => getBarIcon(route, focused, color, size),
                   tabBarActiveTintColor: baseColor,
                 })}
 				initialRouteName={defaultTab}
               >
-                <Tabs.Screen name="Day" component={Day}
+                <Tabs.Screen name='Day' component={Day}
 					listeners={() => handleTabChange("Day")}
 				/>
-                <Tabs.Screen name="Month" component={Month}
+                <Tabs.Screen name='Month' component={Month}
 					listeners={() => handleTabChange("Month")}
 				/>
-                <Tabs.Screen name="Year" component={Year}
+                <Tabs.Screen name='Year' component={Year}
 					listeners={() => handleTabChange("Year")}				
 				/>
-                <Tabs.Screen name="Setting" component={Setting}
+                <Tabs.Screen name='Setting' component={Setting}
 					listeners={() => handleTabChange("Setting")}
 				/>
                 {/* <Tabs.Screen name="Day" component={Day}/>

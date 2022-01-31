@@ -5,7 +5,11 @@ import { StyleSheet, TextInput, View, TouchableOpacity } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
+
 const DayListItem = ({item, setItemName, setItemPrice, onRemove, autoFocus, onFocus, onBlur, borderColor}) => {
+
+	const { t } = useTranslation();
 
 	const [isFocusName, setIsFocusName] = useState(false);
 	const [isFocusPrice, setIsFocusPrice] = useState(false);
@@ -28,7 +32,7 @@ const DayListItem = ({item, setItemName, setItemPrice, onRemove, autoFocus, onFo
 			{/* <View style={{display: 'flex', width: '80%'}}> */}
 			<View style={{display: 'flex', flexDirection: 'row', width: '80%'}}>
 				<TextInput
-					placeholder='Item Name'
+					placeholder={t('DAY:ITEM_NAME')}
 					style={isFocusName ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}
 					onFocus={(e) => {
 						setIsFocusName(true);
@@ -47,7 +51,7 @@ const DayListItem = ({item, setItemName, setItemPrice, onRemove, autoFocus, onFo
 					value={item.name}
 				/>
 				<TextInput
-					placeholder='Item Price'
+					placeholder={t('DAY:ITEM_PRICE')}
 					style={isFocusPrice ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}
 					onFocus={(e) => {
 						setIsFocusPrice(true);

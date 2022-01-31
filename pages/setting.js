@@ -19,20 +19,24 @@ import {
 	setLoading
 } from '../redux/action/loading'
 
+import ModalPicker from '../components/ModalPicker'
+
 import { persistor } from '../redux/store';
+import { useTranslation } from 'react-i18next';
 
 const Setting = ({ navigation }) => {
 
-	const LANGUAGE = {
-		ENGLISH: 'English',
-		CHINESE: 'Chinese',
-	}
+	const LANGUAGE = [
+		{key: 'English', label: 'English'},
+		{key: 'Chinese', label: '中文'}
+	]
 
 	const COLORS = {
 		BLUE: '#3f50b5',
 		PINK: '#e65e79',
 	}
 
+	const { t } = useTranslation();
 	const dispatch = useDispatch();
 
 	const {
@@ -47,18 +51,21 @@ const Setting = ({ navigation }) => {
 		dispatch(setColor({color: color}));
 	}
 
+	const changeLanguage = (language) => {
+		dispatch(setLanguage({language: language}));
+	}
+
 	const alertClearData = () => {
 		Alert.alert(
-			"Clear Data",
-			"Are you sure to clear all data?",
+			t("SETTING:CLEAR_DATA_WARNING"),
+			t("SETTING:CLEAR_DATA_WARNING_MSG"),
 			[
 			  {
-				text: "Cancel",
-				onPress: () => console.log(),
+				text: t("UTILS:CANCEL"),
 				style: "cancel"
 			  },
 			  {
-				text: "OK",
+				text: t("UTILS:OK"),
 				onPress: async() => {
 					dispatch(setLoading(true))
 
@@ -77,7 +84,7 @@ const Setting = ({ navigation }) => {
 		<SafeAreaView style={styles.container}>
 			<ScrollView style={styles.scroll} keyboardShouldPersistTaps='always'>
 				<View style={styles.blocksContainer}>
-					<Text style={styles.text}>color</Text>
+					<Text style={styles.text}>{t("SETTING:COLOR")}</Text>
 					<View style={styles.blocksContainer}>
 						<TouchableHighlight style={[styles.blocks, { backgroundColor: COLORS.BLUE}]} underlayColor={COLORS.BLUE + 'CC'} onPress={() => changeColor(COLORS.BLUE)}>
 							<Text/>
@@ -89,17 +96,21 @@ const Setting = ({ navigation }) => {
 				</View>
 				<View style={styles.hr}/>
 				<View style={styles.blocksContainer}>
-					<Text style={styles.text}>Language</Text>
+					<Text style={styles.text}>{t("SETTING:LANGUAGE")}</Text>
 					<View style={styles.blocksContainer}>
-						<TouchableHighlight style={{padding: 5, borderRadius: 5}} underlayColor={baseColor + 'CC'} onPress={() => alert('not implemented')}>
-							<Text style={[styles.text, { color: baseColor }]}>{language}</Text>
-						</TouchableHighlight>
+						<ModalPicker
+							options={LANGUAGE}
+							defaultValue={language}
+							onSelect={changeLanguage}
+							textStyle={styles.text}
+							color={baseColor}
+						/>
 					</View>
 				</View>
 				<View style={styles.hr}/>
 				<TouchableHighlight style={{borderRadius: 5}} underlayColor={'#ffffff00'} onPress={() => alertClearData()}>
 				<View style={styles.blocksContainer}>
-						<Text style={styles.text}>Clear Data</Text>
+						<Text style={styles.text}>{t("SETTING:CLEAR_DATA_WARNING")}</Text>
 				</View>
 				</TouchableHighlight>
 			</ScrollView>

@@ -8,6 +8,8 @@ import {store, persistor} from './redux/store';
 import Main from './pages/main';
 import Splash from './components/Splash';
 
+import './utils/i18n.js'
+
 export default function App() {
 
   const [splash, setSplash] = useState(true);

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View } from 'react-native';
+import { Button, Keyboard, ScrollView, StyleSheet, Text, TextInput, TouchableHighlight, View, Alert } from 'react-native';
+
+import { Ionicons, AntDesign } from '@expo/vector-icons';
 
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -28,8 +30,11 @@ import Loading from '../components/Loading'
 import DayListItem from '../components/DayListItem';
 import { isPriceOnEntering } from '../utils/Validation'
 
+import { useTranslation } from 'react-i18next';
+
 const Day = ({ navigation }) => {
 
+	const { t } = useTranslation();
 	const dispatch = useDispatch();
 	const {
 		baseColor,
@@ -68,7 +73,25 @@ const Day = ({ navigation }) => {
 		let newItems = [...items];
 
 		if(!isPriceOnEntering(price)){
-			alert('Please enter a valid price');
+			Alert.alert(
+				t("UTILS:WARNING"),
+				t("DAY:VALID_PRICE_WARNING_MSG"),
+				[{ text: t("UTILS:OK"), }],
+				{ cancelable: false }
+			  );
+
+			return;
+		}
+
+		if((total + parseFloat(price) > 1000000)
+			|| (total + parseFloat(price) < -1000000)){
+			Alert.alert(
+				t("UTILS:WARNING"),
+				t("DAY:BEYOND_RANGE_WARNING_MSG"),
+				[{ text: t("UTILS:OK"), }],
+				{ cancelable: false }
+			  );
+
 			return;
 		}
 
@@ -82,11 +105,30 @@ const Day = ({ navigation }) => {
 		let totalItems = items.length;
 
 		setItems([...items, {
-			name: `Item ${totalItems + 1}`,
+			name: `${t('DAY:ITEM')} ${totalItems + 1}`,
 			price: ''
 		}]);
 
 		setAutoFocus(true)
+	}
+
+	const confirmSaveEdit = () => {
+		Alert.alert(
+			t("DAY:SAVE_EDIT_WARNING"),
+			t("DAY:SAVE_EDIT_WARNING_MSG"),
+			[
+			  {
+				text: t("UTILS:CANCEL"),
+				style: "cancel"
+			  },
+			  {
+				text: t("UTILS:OK"),
+				onPress: () => saveEdit(),
+				style: 'destructive'
+			  }
+			],
+			{ cancelable: false }
+		  );
 	}
 
 	const saveEdit = () => {
@@ -116,7 +158,7 @@ const Day = ({ navigation }) => {
 		<SafeAreaView style={styles.container}>
 			{allItemsLoading ? <Loading/> : null}			
 			<View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 15, paddingRight: 15, paddingBottom: 15, width: '100%'}}>
-				<Text>Total: </Text>
+				<Text>{t("DAY:TOTAL")} </Text>
 				<Text>{`$ ${total}`}</Text>
 			</View>
 			<ScrollView style={styles.scroll} keyboardShouldPersistTaps='always'>
@@ -134,11 +176,11 @@ const Day = ({ navigation }) => {
 			</ScrollView>
 			<View style={{width: '90%', display: 'flex', alignItems: 'center', flexDirection: 'row'}}>
 				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
-					<Text style={{color: '#fff'}}>Add Item</Text>
+					<Text style={{color: '#fff'}}>{t("DAY:ADD_ITEM")}</Text>
 				</TouchableHighlight>
-				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={saveEdit}>
-					<Text style={{color: '#fff'}}>Save</Text>
-				</TouchableHighlight>				
+				<TouchableHighlight style={[styles.iconButton, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={confirmSaveEdit}>
+					<AntDesign size={20} color={"#fff"} name="save"/>
+				</TouchableHighlight>
 			</View>
 		</SafeAreaView>
 	)
@@ -168,6 +210,17 @@ const styles = StyleSheet.create({
 	// 	margin: 3,
 	// 	padding: 5
 	// },
+	iconButton: {
+		// width: '90%',
+		height: 40,
+		width: 40,
+		margin: 5,
+		padding: 5,
+		borderRadius: 5,
+		backgroundColor: '#3f50b5',
+		alignItems: 'center',
+		justifyContent: 'center',
+	},
 	button: {
 		// width: '90%',
 		flex: 1,
