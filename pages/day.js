@@ -18,11 +18,14 @@ import {
 } from '../redux/reducer/setting'
 
 import {
+	getIsEditing,
 	getData,
 	getDataLoading
 } from '../redux/reducer/data'
 
 import {
+	setEdit,
+	cancelEdit,
 	setDayItems
 } from '../redux/action/data'
 
@@ -38,6 +41,7 @@ const Day = ({ navigation }) => {
 	const dispatch = useDispatch();
 	const {
 		baseColor,
+		isEditing,
 		allItems,
 		allItemsLoading,
 
@@ -47,6 +51,7 @@ const Day = ({ navigation }) => {
 		year
 	} = useSelector(state => ({
 		baseColor: getColor(state.setting),
+		isEditing: getIsEditing(state.data),
 		allItems: getData(state.data),
 		allItemsLoading: getDataLoading(state.data),
 
@@ -60,13 +65,15 @@ const Day = ({ navigation }) => {
 	const [items, setItems] = useState([]);
 	
 	const [autoFocus, setAutoFocus] = useState(false);
-
+	
 	const setItemName = (index, text) => {
 		let newItems = [...items];
 
 		newItems[index].name = text;
-		console.log(newItems)
 		setItems(newItems);
+
+		if(!isEditing)
+			dispatch(setEdit());
 	}
 
 	const setItemPrice = (index, price) => {
@@ -97,9 +104,17 @@ const Day = ({ navigation }) => {
 
 		newItems[index].price = price;
 		setItems(newItems);
+
+		if(!isEditing)
+			dispatch(setEdit());
 	}
 
-	const removeItemAt = (index) => setItems([...items.slice(0, index), ...items.slice(index + 1)]);
+	const removeItemAt = (index) => {
+		setItems([...items.slice(0, index), ...items.slice(index + 1)]);
+
+		if(!isEditing)
+			dispatch(setEdit());
+	}
 
 	const addItem = () => {
 		let totalItems = items.length;
@@ -110,6 +125,9 @@ const Day = ({ navigation }) => {
 		}]);
 
 		setAutoFocus(true)
+
+		if(!isEditing)
+			dispatch(setEdit());
 	}
 
 	const confirmSaveEdit = () => {
@@ -136,8 +154,30 @@ const Day = ({ navigation }) => {
 		Keyboard.dismiss();
 	}
 
-	useEffect(() => {
-		console.log(allItems)
+	const confirmResetItems = () => {
+		Alert.alert(
+			t("DAY:RELOAD_WARNING"),
+			t("DAY:RELOAD_WARNING_MSG"),
+			[
+			  {
+				text: t("UTILS:CANCEL"),
+				style: "cancel"
+			  },
+			  {
+				text: t("UTILS:OK"),
+				onPress: () => {
+					resetItems()
+					if(isEditing)
+						dispatch(cancelEdit());
+				},
+				style: 'destructive'
+			  }
+			],
+			{ cancelable: false }
+		  );
+	}
+
+	const resetItems = () => {
 		if(allItems[year] && allItems[year][month] && allItems[year][month][day]){
 			if(allItems[year][month][day].items.length > 0)
 				setItems([...allItems[year][month][day].items])
@@ -148,6 +188,10 @@ const Day = ({ navigation }) => {
 			setItems([])
 
 		setAutoFocus(false)
+	}
+
+	useEffect(() => {
+		resetItems()
 	}, [allItems, year, month, day, tab])
 
 	useEffect(() => {
@@ -158,7 +202,7 @@ const Day = ({ navigation }) => {
 		<SafeAreaView style={styles.container}>
 			{allItemsLoading ? <Loading/> : null}			
 			<View style={{display: 'flex', alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingLeft: 15, paddingRight: 15, paddingBottom: 15, width: '100%'}}>
-				<Text>{t("DAY:TOTAL")} </Text>
+				<Text>{t("UTILS:TOTAL")} </Text>
 				<Text>{`$ ${total}`}</Text>
 			</View>
 			<ScrollView style={styles.scroll} keyboardShouldPersistTaps='always'>
@@ -174,12 +218,15 @@ const Day = ({ navigation }) => {
 					/>
 				))}
 			</ScrollView>
-			<View style={{width: '90%', display: 'flex', alignItems: 'center', flexDirection: 'row'}}>
-				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
-					<Text style={{color: '#fff'}}>{t("DAY:ADD_ITEM")}</Text>
+			<View style={{width: '100%', paddingLeft: 5, paddingRight: 5, display: 'flex', alignItems: 'center', flexDirection: 'row'}}>
+				<TouchableHighlight style={[styles.iconButton, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={confirmResetItems}>
+					<AntDesign size={20} color={"#fff"} name="reload1"/>
 				</TouchableHighlight>
 				<TouchableHighlight style={[styles.iconButton, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={confirmSaveEdit}>
 					<AntDesign size={20} color={"#fff"} name="save"/>
+				</TouchableHighlight>
+				<TouchableHighlight style={[styles.button, { backgroundColor: baseColor}]} underlayColor={baseColor + 'CC'} onPress={addItem}>
+					<Text style={{color: '#fff'}}>{t("DAY:ADD_ITEM")}</Text>
 				</TouchableHighlight>
 			</View>
 		</SafeAreaView>
@@ -189,7 +236,7 @@ const Day = ({ navigation }) => {
 const styles = StyleSheet.create({
 	container: {
 	  flex: 1,
-	//   backgroundColor: '#fff',
+	  backgroundColor: '#fff',
 	  alignItems: 'center',
 	  justifyContent: 'flex-start',
 	},

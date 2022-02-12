@@ -3,7 +3,7 @@ import {
 	TEST
 } from '../type'
 
-let initState = {
+const initState = {
 	test: 'test'
 }
 

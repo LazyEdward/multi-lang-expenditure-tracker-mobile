@@ -14,14 +14,19 @@ const DateUtils = {
 			return 0
 	},
 	
+	isToday : (day, month, year) => {
+		let today = DateUtils.today;
+		console.log(today)
+		return today.getDate() === day && today.getMonth() === (month - 1) && today.getFullYear() === year;
+	},
+
 	daysInMonth : (month, year) => {
 		return (month === 2) ? (28 + DateUtils.isLeap(year)) : 31 - (month - 1) % 7 % 2;
 	},
 	
 	// https://stackoverflow.com/questions/17964170/get-the-weekday-from-a-date-object-or-date-string-using-javascript
 	getWeekDay : (day, month, year) => {
-		var dow = new Date(year + '-' + month + '-' + day).getDay();
-		// console.log(dow);
+		var dow = new Date(year + '-' + (("0" + month).slice(-2)) + '-' + (("0" + day).slice(-2))).getDay();
 		return dow;
 	}
 

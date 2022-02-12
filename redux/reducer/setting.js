@@ -11,7 +11,7 @@ const DEFAULT_VIEWS = {
 	"Setting": "Setting"
 }
 
-let initState = {
+const initState = {
 	color: '#3f50b5',
 	language: 'English',
 	defaultView: DEFAULT_VIEWS.Day

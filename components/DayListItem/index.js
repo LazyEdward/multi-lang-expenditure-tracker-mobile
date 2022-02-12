@@ -27,10 +27,13 @@ const DayListItem = ({item, setItemName, setItemPrice, onRemove, autoFocus, onFo
 					justifyContent: 'center',
 					paddingLeft: 5,
 					paddingRight: 5,
-					paddingBottom: 15,
+					paddingTop: 5,
+					paddingBottom: 5,
+					marginLeft: 5,
+					marginRight: 5,
 					borderRadius: 25}}>
 			{/* <View style={{display: 'flex', width: '80%'}}> */}
-			<View style={{display: 'flex', flexDirection: 'row', width: '80%'}}>
+			<View style={{display: 'flex', flexDirection: 'row', flex: 1}}>
 				<TextInput
 					placeholder={t('DAY:ITEM_NAME')}
 					style={isFocusName ? [styles.textInput, { borderColor: borderColor }] : styles.textInput}

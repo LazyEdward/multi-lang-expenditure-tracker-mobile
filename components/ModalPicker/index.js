@@ -3,19 +3,7 @@ import PropTypes from 'prop-types';
 import ModalSelector from 'react-native-modal-selector'
 import { TextInput, StyleSheet } from 'react-native';
 
-const ModalPicker = ({options, defaultValue, onSelect, textStyle, color, haveCancel}) => {
-
-	const getTextValue = (value) => {
-		if(options.length < 1)
-			return "";
-
-		let index = options.findIndex(option => option.key === value);
-
-		if(index === -1)
-			return "";
-
-		return options[index].label;
-	}
+const ModalPicker = ({children, options, defaultValue, onSelect, color}) => {
 
 	return (
 		<ModalSelector
@@ -30,7 +18,7 @@ const ModalPicker = ({options, defaultValue, onSelect, textStyle, color, haveCan
 			optionContainerStyle={{backgroundColor: '#ffffff'}}
 			cancelContainerStyle={{backgroundColor: '#ffffff', borderRadius: 5}}			
 		>
-			<TextInput style={{color: color, fontSize: 18}}>{getTextValue(defaultValue)}</TextInput>
+			{children}
 		</ModalSelector>
 	)
 
@@ -49,17 +37,17 @@ const styles = StyleSheet.create({
 });
 
 ModalPicker.propTypes = {
+	children: PropTypes.node,
 	options: PropTypes.arrayOf(PropTypes.object),
 	defaultValue: PropTypes.string,
-	textStyle: PropTypes.object,
 	color: PropTypes.string,
 	onSelect: PropTypes.func
 }
 
 ModalPicker.defaultProps = {
+	children: null,
 	options: [],
 	defaultValue: "",
-	textStyle: {},
 	color: "#787878",
 	onSelect: () => {}
 }

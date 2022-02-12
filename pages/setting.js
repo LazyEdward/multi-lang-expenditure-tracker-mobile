@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { StyleSheet, Text, View, TouchableHighlight, ScrollView, Alert, BackHandler, NativeModules } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableHighlight, ScrollView, Alert, BackHandler, NativeModules } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -47,6 +47,15 @@ const Setting = ({ navigation }) => {
 		language: getLanguage(state.setting),
 	}))
 
+	const getLanguageLabel = (language) => {
+		let index = LANGUAGE.findIndex(lang => lang.key === language);
+
+		if(index === -1)
+			return "";
+
+		return LANGUAGE[index].label;
+	}
+
 	const changeColor = (color) => {
 		dispatch(setColor({color: color}));
 	}
@@ -66,12 +75,17 @@ const Setting = ({ navigation }) => {
 			  },
 			  {
 				text: t("UTILS:OK"),
-				onPress: async() => {
-					dispatch(setLoading(true))
+				onPress: () => {
+					// https://github.com/rt2zz/redux-persist/issues/1015
+					dispatch(setLoading(true));
 
-					persistor.purge().then(() => {
-						NativeModules.DevSettings.reload();
+					persistor.pause();
+					persistor.flush().then(() => {
+						persistor.purge().then(() => {
+							NativeModules.DevSettings.reload();
+						})
 					})
+
 				},
 				style: 'destructive'
 			  }
@@ -104,7 +118,9 @@ const Setting = ({ navigation }) => {
 							onSelect={changeLanguage}
 							textStyle={styles.text}
 							color={baseColor}
-						/>
+						>
+							<TextInput style={{color: baseColor, fontSize: 18}}>{getLanguageLabel(language)}</TextInput>
+						</ModalPicker>
 					</View>
 				</View>
 				<View style={styles.hr}/>
@@ -127,6 +143,7 @@ const styles = StyleSheet.create({
 	},
 	container: {
 		flex: 1,
+		backgroundColor: '#fff',
 		paddingLeft: '5%',
 		paddingRight: '5%',
 		//   alignItems: 'center',

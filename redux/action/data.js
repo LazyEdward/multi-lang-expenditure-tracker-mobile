@@ -1,11 +1,21 @@
 import {
 	SET_DAY_ITEM,
-	SET_DAY_ITEM_DONE
+	SET_DAY_ITEM_DONE,
+	SET_EDIT,
+	CANCEL_EDIT,
 } from '../type'
 
 import {
 	getData
 } from '../reducer/data'
+
+export const setEdit = () => {
+	return {type: SET_EDIT}
+}
+
+export const cancelEdit = () => {
+	return {type: CANCEL_EDIT}
+}
 
 export const setDayItems = ({items, day, month, year}) => (dispatch, getState) => {
 
@@ -32,8 +42,6 @@ export const setDayItems = ({items, day, month, year}) => (dispatch, getState) =
 
 	if(items.length > 0)
 		newData[year][month][day].total = items.filter(item => !isNaN(parseFloat(item.price))).map(item => parseFloat(item.price) * 1000).reduce((a, b) => {return a + b} , 0.0) / 1000;
-
-	console.log(newData)	
 
 	return setTimeout(() => dispatch({type: SET_DAY_ITEM_DONE, payload: newData}), 500);
 }

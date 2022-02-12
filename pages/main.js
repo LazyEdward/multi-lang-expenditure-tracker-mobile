@@ -3,7 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Button, StyleSheet, Text, TouchableHighlight, View, Image } from 'react-native';
+import { Button, StyleSheet, Text, TouchableHighlight, View, Image, Alert } from 'react-native';
 
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons, AntDesign } from '@expo/vector-icons';
@@ -28,6 +28,11 @@ import {
 } from '../redux/reducer/tab'
 
 import {
+	getIsEditing,
+	getDataLoading
+} from '../redux/reducer/data'
+
+import {
 	setLoading
 } from '../redux/action/loading'
 
@@ -36,13 +41,15 @@ import {
 	setDate
 } from '../redux/action/tab'
 
+import {
+	cancelEdit
+} from '../redux/action/data'
+
 import DateUtils from '../utils/DateUtils'
 import Splash from '../components/Splash';
 import { getLoading } from '../redux/reducer/loading';
 
 import { useTranslation } from 'react-i18next';
-
-const Tabs = createBottomTabNavigator();
 
 const TAB_BAR_ICONS = {
   Day: {
@@ -70,31 +77,6 @@ const TAB_BUTTON_LABEL = {
 	Year: "YEAR_TITLE",
 }
 
-const getIconName = (route, focused) => {
-  let iconName = '';
-
-  if(TAB_BAR_ICONS[route.name]){
-    iconName = focused ? TAB_BAR_ICONS[route.name].focused : TAB_BAR_ICONS[route.name].blur
-  }
-
-  return iconName;
-}
-
-const getBarIcon = (route, focused, color, size) => {
-    if(route.name === 'Setting')
-      return <Ionicons name={getIconName(route, focused)} color={color} size={focused ? size : size * .75}/>
-
-    if(route.name === 'Day')
-      return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>日</Text>
-
-    if(route.name === 'Month')
-      return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>月</Text>
-
-    if(route.name === 'Year')
-      return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>年</Text>
-
-}
-
 const Main = ({ navigation, splash }) => {
   
 	const { t, i18n } = useTranslation();
@@ -106,6 +88,9 @@ const Main = ({ navigation, splash }) => {
 	  language,
 	  defaultTab,
 
+	  isEditing,
+	  allItemsLoading,
+
 	  tab,
 	  day,
 	  month,
@@ -115,6 +100,9 @@ const Main = ({ navigation, splash }) => {
 	  language: getLanguage(state.setting),
 	  defaultTab: getDefaultView(state.setting),
 	  
+	  isEditing: getIsEditing(state.data),
+	  allItemsLoading: getDataLoading(state.data),
+
 	  tab: getTab(state.tab),
 	  day: getDay(state.tab),
 	  month: getMonth(state.tab),
@@ -128,10 +116,6 @@ const Main = ({ navigation, splash }) => {
 	}, [])
 
 	useEffect(() => {
-		console.log(tab)
-	}, [tab])
-	
-	useEffect(() => {
 		i18n.changeLanguage(language)
 	}, [])
 	
@@ -139,14 +123,66 @@ const Main = ({ navigation, splash }) => {
 		i18n.changeLanguage(language)
 	}, [language])
 
-	// const [day, setDay] = useState(DateUtils.today.getDate());
-	// const [month, setMonth] = useState(DateUtils.today.getMonth() + 1);
-	// const [year, setYear] = useState(DateUtils.today.getFullYear());	
+	const getIconName = (route, focused) => {
+		let iconName = '';
+	  
+		if(TAB_BAR_ICONS[route.name]){
+		  iconName = focused ? TAB_BAR_ICONS[route.name].focused : TAB_BAR_ICONS[route.name].blur
+		}
+	  
+		return iconName;
+	}
+	
+	const getBarIcon = (route, focused, color, size) => {
+		if(route.name === 'Setting')
+		return <Ionicons name={getIconName(route, focused)} color={color} size={focused ? size : size * .75}/>
+	
+		if(route.name === 'Day')
+		//   return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>日</Text>
+		return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>{DateUtils.today.getDate()}</Text>
+	
+		if(route.name === 'Month')
+		//   return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>月</Text>
+		return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>{DateUtils.months[DateUtils.today.getMonth()]}</Text>
+	
+		if(route.name === 'Year')
+		//   return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>年</Text>
+		return <Text style={{color: `${color}`, fontSize: focused ? 18 : 18 * .75}}>{DateUtils.today.getFullYear()}</Text>
+	
+	}
 
-	const handleTabChange = (targetTab) => ({
-		tabPress: event => {
-			if(tab === targetTab)
+	const handleTabChange = (targetTab, navigation) => ({
+		tabPress: event => {			
+
+			if(isEditing){
+				Alert.alert(
+					t("UTILS:WARNING"),
+					t("UTILS:DISCARD_CHANGES_WARNING_MSG"),
+					[
+						{
+						  text: t("UTILS:CANCEL"),
+						  style: "cancel"
+						},
+						{
+						  text: t("UTILS:OK"),
+						  onPress: () => {
+							navigation.navigate(targetTab);
+							dispatch(cancelEdit());
+							setTimeout(() => dispatch(setTab({tab: targetTab})), 100)
+						  },
+						  style: 'destructive'
+						}
+					  ],
+					{ cancelable: false }
+				  );
+				event.preventDefault();
 				return;
+			}
+
+			if(tab === targetTab || allItemsLoading){
+				event.preventDefault();
+				return;
+			}
 
 			setTimeout(() => dispatch(setTab({tab: targetTab})), 100)
 		},
@@ -163,11 +199,11 @@ const Main = ({ navigation, splash }) => {
 		let label = `${year}`;
 
 		if(page === 'Month')
-			label = `${month}/` + label
+			label = `${("0" + month).slice(-2)}/` + label
 		if(page === 'Day')
-			label = `${day}/${month}/` + label
+			label = `${("0" + day).slice(-2)}/${("0" + month).slice(-2)}/` + label
 
-		return(label)
+		return label
 	}
 
 	const handlePrev = (page) => {
@@ -211,7 +247,30 @@ const Main = ({ navigation, splash }) => {
 			}
 		}
 
-		setTimeout(() => dispatch(setDate(date)), 100)		
+		if(isEditing){
+			Alert.alert(
+				t("UTILS:WARNING"),
+				t("UTILS:DISCARD_CHANGES_WARNING_MSG"),
+				[
+					{
+					  text: t("UTILS:CANCEL"),
+					  style: "cancel"
+					},
+					{
+					  text: t("UTILS:OK"),
+					  onPress: () => {
+						dispatch(cancelEdit());
+						setTimeout(() => dispatch(setDate(date)), 100)
+					  },
+					  style: 'destructive'
+					}
+				  ],
+				{ cancelable: false }
+			  );
+		}
+		else
+			setTimeout(() => dispatch(setDate(date)), 100)
+
 	}
 
 	const handleNext = (page) => {
@@ -255,53 +314,74 @@ const Main = ({ navigation, splash }) => {
 			}
 		}
 		
-		setTimeout(() => dispatch(setDate(date)), 100)
+		if(isEditing){
+			Alert.alert(
+				t("UTILS:WARNING"),
+				t("UTILS:DISCARD_CHANGES_WARNING_MSG"),
+				[
+					{
+					  text: t("UTILS:CANCEL"),
+					  style: "cancel"
+					},
+					{
+					  text: t("UTILS:OK"),
+					  onPress: () => {
+						dispatch(cancelEdit());
+						setTimeout(() => dispatch(setDate(date)), 100)
+					  },
+					  style: 'destructive'
+					}
+				  ],
+				{ cancelable: false }
+			  );
+		}
+		else
+			setTimeout(() => dispatch(setDate(date)), 100)
+
 	}
+
+	const Tabs = createBottomTabNavigator();
 
 	return (
         <SafeAreaProvider>
           {splash || loading ? 
             <Splash/>
           :
-            <NavigationContainer style={styles.container}>
+            <NavigationContainer>
               <Tabs.Navigator
-			  	  backBehavior="none"
-                  screenOptions={({route}) => ({
+				backBehavior="none"
+				screenOptions={({route}) => ({
                   // headerShown: false,
                   headerTintColor: '#fff',
                   headerStyle: [styles.header, { backgroundColor: baseColor}],
                   headerLeft: ({tintColor}) => {
                     let setting = route.name === 'Setting'
-                    return setting ? null : <View style={styles.iconView}><TouchableHighlight underlayColor='#ffffffcc' onPress={() => handlePrev(route.name)} style={{borderRadius: 50}}><AntDesign style={styles.iconButton} color={tintColor} name="left"/></TouchableHighlight></View>
+                    return setting ? null : <View style={styles.iconView}><TouchableHighlight underlayColor='#ffffff55' onPress={() => handlePrev(route.name)} style={{borderRadius: 50}}><AntDesign style={styles.iconButton} color={tintColor} name="left"/></TouchableHighlight></View>
                   },
                   headerRight: ({tintColor}) => {
                     let setting = route.name === 'Setting'
-                    return setting ? null : <View style={styles.iconView}><TouchableHighlight underlayColor='#ffffffcc' onPress={() => handleNext(route.name)} style={{borderRadius: 50}}><AntDesign style={styles.iconButton} color={tintColor} name="right"/></TouchableHighlight></View>
+                    return setting ? null : <View style={styles.iconView}><TouchableHighlight underlayColor='#ffffff55' onPress={() => handleNext(route.name)} style={{borderRadius: 50}}><AntDesign style={styles.iconButton} color={tintColor} name="right"/></TouchableHighlight></View>
                   },
                   headerTitle: getTabLabel(route.name),
                   headerTitleAlign: 'center',
 				  tabBarLabel: getTabButtonLabel(route.name),
                   tabBarIcon: ({ focused, color, size }) => getBarIcon(route, focused, color, size),
-                  tabBarActiveTintColor: baseColor,
+                  tabBarActiveTintColor: baseColor,				  
                 })}
 				initialRouteName={defaultTab}
               >
                 <Tabs.Screen name='Day' component={Day}
-					listeners={() => handleTabChange("Day")}
+					listeners={({navigation}) => handleTabChange("Day", navigation)}
 				/>
                 <Tabs.Screen name='Month' component={Month}
-					listeners={() => handleTabChange("Month")}
+					listeners={({navigation}) => handleTabChange("Month", navigation)}
 				/>
                 <Tabs.Screen name='Year' component={Year}
-					listeners={() => handleTabChange("Year")}				
+					listeners={({navigation}) => handleTabChange("Year", navigation)}
 				/>
                 <Tabs.Screen name='Setting' component={Setting}
-					listeners={() => handleTabChange("Setting")}
+					listeners={({navigation}) => handleTabChange("Setting", navigation)}
 				/>
-                {/* <Tabs.Screen name="Day" component={Day}/>
-                <Tabs.Screen name="Month" component={Month}/>
-                <Tabs.Screen name="Year" component={Year}/>
-                <Tabs.Screen name="Setting" component={Setting}/> */}
               </Tabs.Navigator>
             </NavigationContainer>
         }

@@ -5,7 +5,7 @@ import {
 
 import DateUtils from '../../utils/DateUtils'
 
-let initState = {
+const initState = {
 	tab: 'Day',
 	day: DateUtils.today.getDate(),
 	month: DateUtils.today.getMonth() + 1,
