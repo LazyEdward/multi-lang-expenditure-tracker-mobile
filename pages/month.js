@@ -75,12 +75,12 @@ const Month = ({ navigation }) => {
 
 			for(let day = 1; day <= days; day++){
 				if(allItems[year][month][day] && allItems[year][month][day].total)				
-					total += allItems[year][month][day].total;
+					total += allItems[year][month][day].total * 1000;
 			}
 
 		}
 
-		setTotal(total)
+		setTotal(total/1000)
 
 	}, [allItems, year, month, tab])
 

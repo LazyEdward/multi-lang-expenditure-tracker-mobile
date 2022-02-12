@@ -35,9 +35,12 @@ const YearCalendar = ({year, allItems, color, onPress}) => {
 
 			for(let day = 1; day <= days; day++){
 				if(allItems && allItems[year] && allItems[year][month] && allItems[year][month][day] && allItems[year][month][day].total){
-					items[season][start].total += allItems[year][month][day].total
+					items[season][start].total += allItems[year][month][day].total * 1000
 				}
 			}
+
+			if(items[season][start].total)
+				items[season][start].total /= 1000
 
 			start++;
 
